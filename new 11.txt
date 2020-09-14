@@ -1,0 +1,1305 @@
+
+Sub getcomment(wsName As String)
+   If wsName = "T599" Or wsName = "T709_Cell_1" Or wsName = "T709_Cell_2" Or wsName = "T709_Cell_3" Then
+      Dim ws As Worksheet
+      Set ws = Sheets(wsName)
+      
+      lastRow = ws.Range("E7").End(xlDown).Row
+      Dim myRange, commentsRange As Range
+   
+          Set myRange = ws.Range("E7:E" & lastRow)
+     
+        Set commentsRange = myRange.Cells.SpecialCells(xlCellTypeComments)
+       arrayLenght = commentsRange.Count
+        ReDim arrayComments(arrayLenght)
+        j = 0
+         For Each mycell In commentsRange
+            i = i + 1
+            arrayComments(i) = mycell.Comment.Text
+            j = i
+        Next mycell
+    '      MsgBox arrayComments(j)
+        varComment = arrayComments(j)
+        
+        lenh = Len(varComment)
+        numint = Mid(varComment, 16, lenh)
+        
+         Dim str As String, regex As regExp, matches As MatchCollection, match As match
+         Set regex = New regExp
+        regex.Pattern = "\d+"      '~~~> Look for variable length numbers only
+        regex.Global = True
+    
+        If (regex.test(numint) = True) Then
+            Set matches = regex.Execute(numint)   '~~~> Execute search
+    
+            For Each match In matches
+                numcomment = match.Value  '~~~> Prints: 7026, 7027, 7033
+            Next
+        End If
+        
+'         startQty = Sheets("T599").Range("E5").End(xlDown).Row
+      
+            ws.Range("E7").Value = numcomment
+   End If
+'   ***************************************************************
+End Sub
+
+Sub unhide(wsName As String)
+If wsName = "T599" Or wsName = "T709_Cell_1" Or wsName = "T709_Cell_2" Or wsName = "T709_Cell_3" Then
+      Dim wsU As Worksheet
+      Set wsU = Sheets(wsName)
+      wsU.Activate
+      lRow = wsU.Cells(Rows.Count, 2).End(xlUp).Row
+      
+      For i = 7 To lRow
+         j = i
+           If wsU.Range("A" & i).DisplayFormat.Interior.Color <> 10921638 Then
+              Exit For
+           End If
+     Next i
+    lastHide = j - 1
+   
+   If wsU.Range("A" & lastHide).DisplayFormat.Interior.Color = 10921638 Then
+        Rows("6:" & lastHide).Select
+        Selection.EntireRow.Hidden = False
+    
+         Rows("7:" & lastHide).Select
+        Selection.Delete Shift:=xlUp
+    End If
+    
+  End If
+End Sub
+
+Sub Qty(wsName As String)
+   If wsName = "T599" Then
+    Dim wsT5 As Worksheet
+    Set wsT5 = Sheets("T599")
+    wsT5.Activate
+'   tt = Range("D11").DisplayFormat.Interior.Color
+    Columns("A:A").Select
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    Range("A6").Select
+    ActiveCell.FormulaR1C1 = "day"
+    Range("B6").Select
+    ActiveCell.FormulaR1C1 = "shift"
+      Range("A5:A6").Select
+      Selection.Merge
+      Range("B5:B6").Select
+      Selection.Merge
+
+'     **********************get date**************************
+    Dim wsMaster As Worksheet
+    Set wsMaster = Sheets("MASTER PRODUCT T599")
+    
+    lastrowMaster = wsMaster.Range("A200").End(xlUp).Row + 1
+'    lastcolMaster = wsMaster.Cells(1, Columns.Count).End(xlToLeft).Column
+    lastcolMaster = 33
+    colNameM = Split(Cells(, (lastcolMaster)).Address, "$")(1)
+
+
+      Dim numGr As Integer
+      Dim alldataGr As Integer
+      numGr = 6
+      Dim QtyN As Integer
+      Dim CharDay As String
+      For i = 1 To lastrowMaster
+         For j = 3 To lastcolMaster
+           colChackN = Split(Cells(, (j)).Address, "$")(1)
+
+         
+               If wsMaster.Range(colChackN & 1).DisplayFormat.Interior.Color = 16777215 And wsMaster.Range(colChackN & 1).Value <> "" Then
+
+                If i = 7 Then
+
+                     QtyN = wsMaster.Range(colChackN & "7").Value
+
+                         lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                         For m = numGr To lastrowMaster
+
+                             numGr = numGr + 1
+                             vall = wsT5.Range("G" & numGr).Value
+                             alldataGr = alldataGr + vall
+                              wsT5.Range("A" & numGr).Value = wsMaster.Range(colChackN & "1").Value
+                              wsT5.Range("B" & numGr).Value = "D"
+
+                               If (alldataGr > QtyN) Then
+                                    wsT5.Rows(numGr & ":" & numGr).Select
+                                    Selection.Insert Shift:=xlDown
+                                    wsT5.Rows((numGr + 1) & ":" & (numGr + 1)).Select
+                                    Selection.Copy
+                                    wsT5.Rows(numGr & ":" & numGr).Select
+                                    ActiveSheet.Paste
+
+                                    temp = alldataGr - QtyN
+                                    newQty = wsT5.Range("G" & numGr).Value - temp
+                                    wsT5.Range("G" & numGr).Value = newQty
+                                    wsT5.Range("G" & (numGr + 1)).Value = wsT5.Range("G" & (numGr + 1)).Value - newQty
+                                      If newQty = 0 Then
+                                             wsT5.Rows(numGr & ":" & numGr).Delete Shift:=xlUp
+                                             numGr = numGr - 1
+                                      End If
+                               End If
+                               lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                               If alldataGr > QtyN Then
+                                 alldataGr = 0
+                                 Exit For
+                               End If
+                         Next m
+
+                          If wsMaster.Range(colChackN & "8").Value <> "" Then
+                         QtyN = wsMaster.Range(colChackN & "8").Value
+
+                             lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                             For m = numGr To lastrowMaster
+
+                                 numGr = numGr + 1
+                                 vall = wsT5.Range("G" & numGr).Value
+                                 alldataGr = alldataGr + vall
+                                  wsT5.Range("A" & numGr).Value = wsMaster.Range(colChackN & "1").Value
+                                  wsT5.Range("B" & numGr).Value = "N"
+
+                                   If (alldataGr > QtyN) Then
+                                        wsT5.Rows(numGr & ":" & numGr).Select
+                                        Selection.Insert Shift:=xlDown
+                                        wsT5.Rows((numGr + 1) & ":" & (numGr + 1)).Select
+                                        Selection.Copy
+                                        wsT5.Rows(numGr & ":" & numGr).Select
+                                        ActiveSheet.Paste
+
+                                        temp = alldataGr - QtyN
+                                        newQty = wsT5.Range("G" & numGr).Value - temp
+                                        wsT5.Range("G" & numGr).Value = newQty
+                                        wsT5.Range("G" & (numGr + 1)).Value = wsT5.Range("G" & (numGr + 1)).Value - newQty
+                                         If newQty = 0 Then
+                                             wsT5.Rows(numGr & ":" & numGr).Delete Shift:=xlUp
+                                              numGr = numGr - 1
+                                        End If
+                                   End If
+                                   lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                                   If alldataGr > QtyN Then
+                                     alldataGr = 0
+                                     Exit For
+                                   End If
+                             Next m
+                          End If 'check NULL
+
+                  End If '7
+
+            End If 'color
+            
+            
+                    If wsMaster.Range(colChackN & 18).DisplayFormat.Interior.Color = 16777215 And wsMaster.Range(colChackN & 18).Value <> "" Then
+
+
+                If i = 24 Then
+
+                     QtyN = wsMaster.Range(colChackN & "24").Value
+
+                         lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                         For m = numGr To lastrowMaster
+
+                             numGr = numGr + 1
+                             vall = wsT5.Range("G" & numGr).Value
+                             alldataGr = alldataGr + vall
+                              wsT5.Range("A" & numGr).Value = wsMaster.Range(colChackN & "18").Value
+                              wsT5.Range("B" & numGr).Value = "D"
+
+                               If (alldataGr > QtyN) Then
+                                    wsT5.Rows(numGr & ":" & numGr).Select
+                                    Selection.Insert Shift:=xlDown
+                                    wsT5.Rows((numGr + 1) & ":" & (numGr + 1)).Select
+                                    Selection.Copy
+                                    wsT5.Rows(numGr & ":" & numGr).Select
+                                    ActiveSheet.Paste
+
+                                    temp = alldataGr - QtyN
+                                    newQty = wsT5.Range("G" & numGr).Value - temp
+                                    wsT5.Range("G" & numGr).Value = newQty
+                                    wsT5.Range("G" & (numGr + 1)).Value = wsT5.Range("G" & (numGr + 1)).Value - newQty
+                                      If newQty = 0 Then
+                                              wsT5.Rows(numGr & ":" & numGr).Delete Shift:=xlUp
+                                               numGr = numGr - 1
+                                      End If
+                               End If
+                               lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                               If alldataGr > QtyN Then
+                                 alldataGr = 0
+                                 Exit For
+                               End If
+                         Next m
+
+                          If wsMaster.Range(colChackN & "25").Value <> "" Then
+                         QtyN = wsMaster.Range(colChackN & "25").Value
+
+                             lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                             For m = numGr To lastrowMaster
+
+                                 numGr = numGr + 1
+                                 vall = wsT5.Range("G" & numGr).Value
+                                 alldataGr = alldataGr + vall
+                                  wsT5.Range("A" & numGr).Value = wsMaster.Range(colChackN & "18").Value
+                                  wsT5.Range("B" & numGr).Value = "N"
+
+                                   If (alldataGr > QtyN) Then
+                                        wsT5.Rows(numGr & ":" & numGr).Select
+                                        Selection.Insert Shift:=xlDown
+                                        wsT5.Rows((numGr + 1) & ":" & (numGr + 1)).Select
+                                        Selection.Copy
+                                        wsT5.Rows(numGr & ":" & numGr).Select
+                                        ActiveSheet.Paste
+
+                                        temp = alldataGr - QtyN
+                                        newQty = wsT5.Range("G" & numGr).Value - temp
+                                        wsT5.Range("G" & numGr).Value = newQty
+                                        wsT5.Range("G" & (numGr + 1)).Value = wsT5.Range("G" & (numGr + 1)).Value - newQty
+                                        If newQty = 0 Then
+                                             wsT5.Rows(numGr & ":" & numGr).Delete Shift:=xlUp
+                                              numGr = numGr - 1
+                                        End If
+                                   End If
+                                   lastrowMaster = wsT5.Range("E7").End(xlDown).Row
+                                   If alldataGr > QtyN Then
+                                     alldataGr = 0
+                                     Exit For
+                                   End If
+                             Next m
+                          End If 'check NULL
+
+                  End If '24
+
+            End If 'color
+        
+
+         Next j
+      Next i
+
+
+'     **********************get date**************************
+
+     Else
+        If Left(wsName, 4) = "T709" Then
+            Dim wsT7 As Worksheet
+            Set wsT7 = Sheets(wsName)
+             wsT7.Activate
+            Sheets(wsName).Select
+            Columns("A:A").Select
+            Selection.Insert Shift:=xlToRight
+            Selection.Insert Shift:=xlToRight
+            Range("A6").Select
+            ActiveCell.FormulaR1C1 = "day"
+            Range("B6").Select
+            ActiveCell.FormulaR1C1 = "shift"
+             Range("A5:A6").Select
+            Selection.Merge
+            Range("B5:B6").Select
+            Selection.Merge
+        
+            
+            Dim wsMasterT As Worksheet
+            Set wsMasterT = Sheets("MASTER PRODUCT T709")
+           
+            lastrowMasterT = wsMasterT.Range("A200").End(xlUp).Row + 1
+'            lastcolMasterT = wsMasterT.Cells(1, Columns.Count).End(xlToLeft).Column
+            lastcolMasterT = 33
+            colNameMT = Split(Cells(, (lastcolMasterT)).Address, "$")(1)
+                
+                Dim numGrT As Integer
+                Dim alldataGrT As Integer
+                numGrT = 6
+                Dim QtyNT As Integer
+                Dim CharDayT As String
+                
+                For i = 1 To lastrowMasterT
+                    For j = 3 To lastcolMasterT
+                        colChackNT = Split(Cells(, (j)).Address, "$")(1)
+                           If wsMasterT.Range(colChackNT & 1).DisplayFormat.Interior.Color = 16777215 And wsMasterT.Range(colChackNT & 1).Value <> "" Then
+                              If wsName = "T709_Cell_1" Then
+                                  
+                                If i = 10 Then
+                
+                                 QtyNT = wsMasterT.Range(colChackNT & "10").Value
+            
+                                     lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                     For m = numGrT To lastrowMasterT
+            
+                                         numGrT = numGrT + 1
+                                         vall = wsT7.Range("G" & numGrT).Value
+                                         alldataGrT = alldataGrT + vall
+                                          wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "1").Value
+                                          wsT7.Range("B" & numGrT).Value = "D"
+            
+                                           If (alldataGrT > QtyNT) Then
+                                                wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                Selection.Insert Shift:=xlDown
+                                                wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                                Selection.Copy
+                                                wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                ActiveSheet.Paste
+            
+                                                temp = alldataGrT - QtyNT
+                                                newQty = wsT7.Range("G" & numGrT).Value - temp
+                                                wsT7.Range("G" & numGrT).Value = newQty
+                                                wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                                 If newQty = 0 Then
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                     numGrT = numGrT - 1
+                                                End If
+                                           End If
+                                           lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                           If alldataGrT > QtyNT Then
+                                             alldataGrT = 0
+                                             Exit For
+                                           End If
+                                     Next m
+            
+                                      If wsMasterT.Range(colChackNT & "11").Value <> "" Then
+                                     QtyNT = wsMasterT.Range(colChackNT & "11").Value
+            
+                                         lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                         For m = numGrT To lastrowMasterT
+            
+                                             numGrT = numGrT + 1
+                                             vall = wsT7.Range("G" & numGrT).Value
+                                             alldataGrT = alldataGrT + vall
+                                              wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "1").Value
+                                              wsT7.Range("B" & numGrT).Value = "N"
+            
+                                               If (alldataGrT > QtyNT) Then
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                    Selection.Insert Shift:=xlDown
+                                                    wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                                    Selection.Copy
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                    ActiveSheet.Paste
+            
+                                                    temp = alldataGrT - QtyNT
+                                                    newQty = wsT7.Range("G" & numGrT).Value - temp
+                                                    wsT7.Range("G" & numGrT).Value = newQty
+                                                    wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                                    If newQty = 0 Then
+                                                         wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                         numGrT = numGrT - 1
+                                                     End If
+                                              End If
+                                               lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                               If alldataGrT > QtyNT Then
+                                                 alldataGrT = 0
+                                                 Exit For
+                                               End If
+                                         Next m
+                                      End If 'check NULL
+                
+                                  End If '10
+                                End If 'sheet cell 1
+                                 
+                             If wsName = "T709_Cell_2" Then
+                                 If i = 12 Then
+
+                         QtyNT = wsMasterT.Range(colChackNT & "12").Value
+    
+                             lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                             For m = numGrT To lastrowMasterT
+    
+                                 numGrT = numGrT + 1
+                                 vall = wsT7.Range("G" & numGrT).Value
+                                 alldataGrT = alldataGrT + vall
+                                  wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "1").Value
+                                  wsT7.Range("B" & numGrT).Value = "D"
+    
+                                   If (alldataGrT > QtyNT) Then
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        Selection.Insert Shift:=xlDown
+                                        wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                        Selection.Copy
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        ActiveSheet.Paste
+    
+                                        temp = alldataGrT - QtyNT
+                                        newQty = wsT7.Range("G" & numGrT).Value - temp
+                                        wsT7.Range("G" & numGrT).Value = newQty
+                                        wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                            If newQty = 0 Then
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                    numGrT = numGrT - 1
+                                             End If
+                                   End If
+                                   lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                   If alldataGrT > QtyNT Then
+                                     alldataGrT = 0
+                                     Exit For
+                                   End If
+                             Next m
+    
+                              If wsMasterT.Range(colChackNT & "13").Value <> "" Then
+                             QtyNT = wsMasterT.Range(colChackNT & "13").Value
+    
+                                 lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                 For m = numGrT To lastrowMasterT
+    
+                                     numGrT = numGrT + 1
+                                     vall = wsT7.Range("G" & numGrT).Value
+                                     alldataGrT = alldataGrT + vall
+                                      wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "1").Value
+                                      wsT7.Range("B" & numGrT).Value = "N"
+    
+                                       If (alldataGrT > QtyNT) Then
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            Selection.Insert Shift:=xlDown
+                                            wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                            Selection.Copy
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            ActiveSheet.Paste
+    
+                                            temp = alldataGrT - QtyNT
+                                            newQty = wsT7.Range("G" & numGrT).Value - temp
+                                            wsT7.Range("G" & numGrT).Value = newQty
+                                            wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                                If newQty = 0 Then
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                    numGrT = numGrT - 1
+                                                End If
+                                       End If
+                                       lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                       If alldataGrT > QtyNT Then
+                                         alldataGrT = 0
+                                         Exit For
+                                       End If
+                                 Next m
+                              End If 'check NULL
+
+                  End If '12
+                End If 'sheet cell 2
+                   
+                    If wsName = "T709_Cell_3" Then
+                       If i = 14 Then
+                         QtyNT = wsMasterT.Range(colChackNT & "14").Value
+    
+                             lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                             For m = numGrT To lastrowMasterT
+    
+                                 numGrT = numGrT + 1
+                                 vall = wsT7.Range("G" & numGrT).Value
+                                 alldataGrT = alldataGrT + vall
+                                  wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "1").Value
+                                  wsT7.Range("B" & numGrT).Value = "D"
+    
+                                   If (alldataGrT > QtyNT) Then
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        Selection.Insert Shift:=xlDown
+                                        wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                        Selection.Copy
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        ActiveSheet.Paste
+    
+                                        temp = alldataGrT - QtyNT
+                                        newQty = wsT7.Range("G" & numGrT).Value - temp
+                                        wsT7.Range("G" & numGrT).Value = newQty
+                                        wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                        If newQty = 0 Then
+                                                wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                numGrT = numGrT - 1
+                                         End If
+                                   End If
+                                   lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                   If alldataGrT > QtyNT Then
+                                     alldataGrT = 0
+                                     Exit For
+                                   End If
+                             Next m
+    
+                              If wsMasterT.Range(colChackNT & "15").Value <> "" Then
+                             QtyNT = wsMasterT.Range(colChackNT & "15").Value
+    
+                                 lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                 For m = numGrT To lastrowMasterT
+    
+                                     numGrT = numGrT + 1
+                                     vall = wsT7.Range("G" & numGrT).Value
+                                     alldataGrT = alldataGrT + vall
+                                      wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "1").Value
+                                      wsT7.Range("B" & numGrT).Value = "N"
+    
+                                       If (alldataGrT > QtyNT) Then
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            Selection.Insert Shift:=xlDown
+                                            wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                            Selection.Copy
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            ActiveSheet.Paste
+    
+                                            temp = alldataGrT - QtyNT
+                                            newQty = wsT7.Range("G" & numGrT).Value - temp
+                                            wsT7.Range("G" & numGrT).Value = newQty
+                                            wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                            If newQty = 0 Then
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                    numGrT = numGrT - 1
+                                            End If
+                                       End If
+                                       lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                       If alldataGrT > QtyNT Then
+                                         alldataGrT = 0
+                                         Exit For
+                                       End If
+                                 Next m
+                                End If 'check NULL
+                              End If '14
+                            End If 'sheet cell 3
+                           End If 'color
+                           
+                           
+                           If wsMasterT.Range(colChackNT & 29).DisplayFormat.Interior.Color = 16777215 And wsMasterT.Range(colChackNT & 29).Value <> "" Then
+                              If wsName = "T709_Cell_1" Then
+                                  
+                                If i = 38 Then
+                
+                                 QtyNT = wsMasterT.Range(colChackNT & "38").Value
+            
+                                     lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                     For m = numGrT To lastrowMasterT
+            
+                                         numGrT = numGrT + 1
+                                         vall = wsT7.Range("G" & numGrT).Value
+                                         alldataGrT = alldataGrT + vall
+                                          wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "29").Value
+                                          wsT7.Range("B" & numGrT).Value = "D"
+            
+                                           If (alldataGrT > QtyNT) Then
+                                                wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                Selection.Insert Shift:=xlDown
+                                                wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                                Selection.Copy
+                                                wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                ActiveSheet.Paste
+            
+                                                temp = alldataGrT - QtyNT
+                                                newQty = wsT7.Range("G" & numGrT).Value - temp
+                                                wsT7.Range("G" & numGrT).Value = newQty
+                                                wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                                If newQty = 0 Then
+                                                      wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                      numGrT = numGrT - 1
+                                                End If
+                                           End If
+                                           lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                           If alldataGrT > QtyNT Then
+                                             alldataGrT = 0
+                                             Exit For
+                                           End If
+                                     Next m
+            
+                                      If wsMasterT.Range(colChackNT & "39").Value <> "" Then
+                                     QtyNT = wsMasterT.Range(colChackNT & "39").Value
+            
+                                         lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                         For m = numGrT To lastrowMasterT
+            
+                                             numGrT = numGrT + 1
+                                             vall = wsT7.Range("G" & numGrT).Value
+                                             alldataGrT = alldataGrT + vall
+                                              wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "29").Value
+                                              wsT7.Range("B" & numGrT).Value = "N"
+            
+                                               If (alldataGrT > QtyNT) Then
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                    Selection.Insert Shift:=xlDown
+                                                    wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                                    Selection.Copy
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Select
+                                                    ActiveSheet.Paste
+            
+                                                    temp = alldataGrT - QtyNT
+                                                    newQty = wsT7.Range("G" & numGrT).Value - temp
+                                                    wsT7.Range("G" & numGrT).Value = newQty
+                                                    wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                                    If newQty = 0 Then
+                                                        wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                        numGrT = numGrT - 1
+                                                    End If
+                                               End If
+                                               lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                               If alldataGrT > QtyNT Then
+                                                 alldataGrT = 0
+                                                 Exit For
+                                               End If
+                                         Next m
+                                      End If 'check NULL
+                
+                                  End If '10
+                                End If 'sheet cell 1
+                                 
+                             If wsName = "T709_Cell_2" Then
+                                 If i = 40 Then
+
+                         QtyNT = wsMasterT.Range(colChackNT & "40").Value
+    
+                             lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                             For m = numGrT To lastrowMasterT
+    
+                                 numGrT = numGrT + 1
+                                 vall = wsT7.Range("G" & numGrT).Value
+                                 alldataGrT = alldataGrT + vall
+                                  wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "29").Value
+                                  wsT7.Range("B" & numGrT).Value = "D"
+    
+                                   If (alldataGrT > QtyNT) Then
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        Selection.Insert Shift:=xlDown
+                                        wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                        Selection.Copy
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        ActiveSheet.Paste
+    
+                                        temp = alldataGrT - QtyNT
+                                        newQty = wsT7.Range("G" & numGrT).Value - temp
+                                        wsT7.Range("G" & numGrT).Value = newQty
+                                        wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                        If newQty = 0 Then
+                                              wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                              numGrT = numGrT - 1
+                                         End If
+                                   End If
+                                   lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                   If alldataGrT > QtyNT Then
+                                     alldataGrT = 0
+                                     Exit For
+                                   End If
+                             Next m
+    
+                              If wsMasterT.Range(colChackNT & "41").Value <> "" Then
+                             QtyNT = wsMasterT.Range(colChackNT & "41").Value
+    
+                                 lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                 For m = numGrT To lastrowMasterT
+    
+                                     numGrT = numGrT + 1
+                                     vall = wsT7.Range("G" & numGrT).Value
+                                     alldataGrT = alldataGrT + vall
+                                      wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "29").Value
+                                      wsT7.Range("B" & numGrT).Value = "N"
+    
+                                       If (alldataGrT > QtyNT) Then
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            Selection.Insert Shift:=xlDown
+                                            wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                            Selection.Copy
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            ActiveSheet.Paste
+    
+                                            temp = alldataGrT - QtyNT
+                                            newQty = wsT7.Range("G" & numGrT).Value - temp
+                                            wsT7.Range("G" & numGrT).Value = newQty
+                                            wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                            If newQty = 0 Then
+                                                 wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                 numGrT = numGrT - 1
+                                            End If
+                                       End If
+                                       lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                       If alldataGrT > QtyNT Then
+                                         alldataGrT = 0
+                                         Exit For
+                                       End If
+                                 Next m
+                              End If 'check NULL
+
+                  End If '12
+                End If 'sheet cell 2
+                   
+                    If wsName = "T709_Cell_3" Then
+                       If i = 42 Then
+                         QtyNT = wsMasterT.Range(colChackNT & "42").Value
+    
+                             lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                             For m = numGrT To lastrowMasterT
+    
+                                 numGrT = numGrT + 1
+                                 vall = wsT7.Range("G" & numGrT).Value
+                                 alldataGrT = alldataGrT + vall
+                                  wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "29").Value
+                                  wsT7.Range("B" & numGrT).Value = "D"
+    
+                                   If (alldataGrT > QtyNT) Then
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        Selection.Insert Shift:=xlDown
+                                        wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                        Selection.Copy
+                                        wsT7.Rows(numGrT & ":" & numGrT).Select
+                                        ActiveSheet.Paste
+    
+                                        temp = alldataGrT - QtyNT
+                                        newQty = wsT7.Range("G" & numGrT).Value - temp
+                                        wsT7.Range("G" & numGrT).Value = newQty
+                                        wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                         If newQty = 0 Then
+                                             wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                             numGrT = numGrT - 1
+                                         End If
+                                   End If
+                                   lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                   If alldataGrT > QtyNT Then
+                                     alldataGrT = 0
+                                     Exit For
+                                   End If
+                             Next m
+    
+                              If wsMasterT.Range(colChackNT & "43").Value <> "" Then
+                             QtyNT = wsMasterT.Range(colChackNT & "43").Value
+    
+                                 lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                 For m = numGrT To lastrowMasterT
+    
+                                     numGrT = numGrT + 1
+                                     vall = wsT7.Range("G" & numGrT).Value
+                                     alldataGrT = alldataGrT + vall
+                                      wsT7.Range("A" & numGrT).Value = wsMasterT.Range(colChackNT & "29").Value
+                                      wsT7.Range("B" & numGrT).Value = "N"
+    
+                                       If (alldataGrT > QtyNT) Then
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            Selection.Insert Shift:=xlDown
+                                            wsT7.Rows((numGrT + 1) & ":" & (numGrT + 1)).Select
+                                            Selection.Copy
+                                            wsT7.Rows(numGrT & ":" & numGrT).Select
+                                            ActiveSheet.Paste
+    
+                                            temp = alldataGrT - QtyNT
+                                            newQty = wsT7.Range("G" & numGrT).Value - temp
+                                            wsT7.Range("G" & numGrT).Value = newQty
+                                            wsT7.Range("G" & (numGrT + 1)).Value = wsT7.Range("G" & (numGrT + 1)).Value - newQty
+                                            If newQty = 0 Then
+                                                    wsT7.Rows(numGrT & ":" & numGrT).Delete Shift:=xlUp
+                                                    numGrT = numGrT - 1
+                                             End If
+                                       End If
+                                       lastrowMasterT = wsT7.Range("E7").End(xlDown).Row
+                                       If alldataGrT > QtyNT Then
+                                         alldataGrT = 0
+                                         Exit For
+                                       End If
+                                 Next m
+                                End If 'check NULL
+                              End If '14
+                            End If 'sheet cell 3
+                           End If 'color
+                    Next j
+                Next i
+        End If
+     End If
+End Sub
+Sub setnull(wsName As String)
+
+   If wsName = "T599" Or wsName = "T709_Cell_1" Or wsName = "T709_Cell_2" Or wsName = "T709_Cell_3" Then
+      Dim ws As Worksheet
+      Set ws = Sheets(wsName)
+      lastRow = ws.Range("A7").End(xlDown).Row
+      ws.Range("A" & lastRow).Value = ""
+      ws.Range("B" & lastRow).Value = ""
+    End If
+    
+    
+End Sub
+Sub nowder()
+    Dim ws As Worksheet
+    For Each ws In ActiveWorkbook.Worksheets
+'        MsgBox ws.Name
+'        Call unhide(ws.Name)
+'        Call getcomment(ws.Name)
+'         Call Qty(ws.Name)
+'        Call setnull(ws.Name)
+        Call Pivot(ws.Name)
+    Next
+    MsgBox "success"
+End Sub
+
+Sub Pivot(wsName As String)
+ If wsName = "T599" Or wsName = "T709_Cell_1" Or wsName = "T709_Cell_2" Or wsName = "T709_Cell_3" Then
+        Dim w5 As Worksheet
+        Set w5 = Sheets(wsName)
+        mainRow = w5.Range("E7").End(xlDown).Row
+        Dim startPast As Integer
+        startPast = 3
+    For i = 13 To 17
+      
+        colName = Split(Cells(, (i)).Address, "$")(1)
+      
+        If i = 13 Then
+                Dim wsP As Worksheet
+                 Set wsP = ThisWorkbook.Sheets.Add(After:= _
+                          ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+                 wsP.Name = wsName & "Pivot"
+                 wsP.Select
+                 
+            If WorksheetFunction.CountA(w5.Range(colName & 7 & ":" & colName & mainRow)) <> 0 Then
+                
+                  lastpivot = w5.Range(colName & 7).End(xlDown).Row
+                  lastfill = (i - 2)
+                  w5.Range(colName & lastpivot).AutoFilter Field:=(lastfill), Criteria1:="<>"
+                  lastRow = w5.Range("A7").End(xlDown).Row
+                  w5.Activate
+                  w5.Range("A5:G" & lastRow).Select
+            
+                 ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+                 wsName & "!A5:G" & lastRow, Version:=6).CreatePivotTable TableDestination:= _
+                 wsName & "Pivot!" & "R" & startPast & "C1", TableName:="PivotTable" & colName, DefaultVersion:=6
+                 wsP.Select
+                 
+                 Sheets(wsName & "Pivot").Select
+                 Cells(startPast, 1).Select
+                 wsP.Range("A" & (startPast - 1)).Value = w5.Range(colName & 6).Value
+                 startPast = startPast + 9
+            End If
+        ElseIf i = 14 Then
+        If WorksheetFunction.CountA(w5.Range(colName & 7 & ":" & colName & mainRow)) <> 0 Then
+              lastpivot = w5.Range(colName & 7).End(xlDown).Row
+              lastfill = (i - 2)
+              w5.Range(colName & lastpivot).AutoFilter Field:=(lastfill), Criteria1:="<>"
+              lastRow = w5.Range("A7").End(xlDown).Row
+              w5.Activate
+              w5.Range("A5:G" & lastRow).Select
+              
+             ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+             wsName & "!A5:G" & lastRow, Version:=6).CreatePivotTable TableDestination:= _
+             wsName & "Pivot!" & "R" & startPast & "C1", TableName:="PivotTable" & colName, DefaultVersion:=6
+             wsP.Select
+            
+             Sheets(wsName & "Pivot").Select
+             Cells(startPast, 1).Select
+             wsP.Range("A" & (startPast - 1)).Value = w5.Range(colName & 6).Value
+             startPast = startPast + 9
+           End If
+        ElseIf i = 15 Then
+       If WorksheetFunction.CountA(w5.Range(colName & 7 & ":" & colName & mainRow)) <> 0 Then
+              lastpivot = w5.Range(colName & 7).End(xlDown).Row
+              lastfill = (i - 2)
+              w5.Range(colName & lastpivot).AutoFilter Field:=(lastfill), Criteria1:="<>"
+              lastRow = w5.Range("A7").End(xlDown).Row
+              w5.Activate
+              w5.Range("A5:G" & lastRow).Select
+              
+            ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+            wsName & "!A5:G" & lastRow, Version:=6).CreatePivotTable TableDestination:= _
+            wsName & "Pivot!" & "R" & startPast & "C1", TableName:="PivotTable" & colName, DefaultVersion:=6
+            wsP.Select
+            
+            Sheets(wsName & "Pivot").Select
+            Cells(startPast, 1).Select
+            wsP.Range("A" & (startPast - 1)).Value = w5.Range(colName & 6).Value
+            startPast = startPast + 9
+           End If
+        ElseIf i = 16 Then
+       If WorksheetFunction.CountA(w5.Range(colName & 7 & ":" & colName & mainRow)) <> 0 Then
+              lastpivot = w5.Range(colName & 7).End(xlDown).Row
+              lastfill = (i - 2)
+              w5.Range(colName & lastpivot).AutoFilter Field:=(lastfill), Criteria1:="<>"
+              lastRow = w5.Range("A7").End(xlDown).Row
+              w5.Activate
+              w5.Range("A5:G" & lastRow).Select
+              
+             ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+             wsName & "!A5:G" & lastRow, Version:=6).CreatePivotTable TableDestination:= _
+              wsName & "Pivot!" & "R" & startPast & "C1", TableName:="PivotTable" & colName, DefaultVersion:=6
+             wsP.Select
+            
+             Sheets(wsName & "Pivot").Select
+             Cells(startPast, 1).Select
+             wsP.Range("A" & (startPast - 1)).Value = w5.Range(colName & 6).Value
+             startPast = startPast + 9
+         End If
+        Else
+          If WorksheetFunction.CountA(w5.Range(colName & 7 & ":" & colName & mainRow)) <> 0 Then
+              lastpivot = w5.Range(colName & 7).End(xlDown).Row
+              lastfill = (i - 2)
+              w5.Range(colName & lastpivot).AutoFilter Field:=(lastfill), Criteria1:="<>"
+              lastRow = w5.Range("A7").End(xlDown).Row
+              w5.Activate
+              w5.Range("A5:G" & lastRow).Select
+              
+             ActiveWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:= _
+            wsName & "!A5:G" & lastRow, Version:=6).CreatePivotTable TableDestination:= _
+            wsName & "Pivot!" & "R" & startPast & "C1", TableName:="PivotTable" & colName, DefaultVersion:=6
+            wsP.Select
+            
+            Sheets(wsName & "Pivot").Select
+           Cells(startPast, 1).Select
+           wsP.Range("A" & (startPast - 1)).Value = w5.Range(colName & 6).Value
+           startPast = startPast + 9
+           End If
+        End If
+        
+        If WorksheetFunction.CountA(w5.Range(colName & 7 & ":" & colName & mainRow)) <> 0 Then
+                With ActiveSheet.PivotTables("PivotTable" & colName).PivotFields("day")
+                    .Orientation = xlColumnField
+                    .Position = 1
+                End With
+                With ActiveSheet.PivotTables("PivotTable" & colName).PivotFields("shift")
+                    .Orientation = xlRowField
+                    .Position = 1
+                End With
+                ActiveSheet.PivotTables("PivotTable" & colName).AddDataField ActiveSheet.PivotTables( _
+                    "PivotTable" & colName).PivotFields("Qty."), "Count of Qty.", xlCount
+                    
+        End If
+         ActiveWorkbook.ShowPivotTableFieldList = False
+         If WorksheetFunction.CountA(w5.Range(colName & 7 & ":" & colName & mainRow)) <> 0 Then
+           w5.Range(colName & lastpivot).AutoFilter Field:=(lastfill)
+         End If
+    Next i
+ End If
+        
+    
+'    MsgBox "success"
+End Sub
+Sub addcolumn()
+Dim wsMasters As Worksheet
+    Set wsMasters = Sheets("MASTER PRODUCT T599")
+    Dim wsT5s As Worksheet
+    Set wsT5s = Sheets("T599")
+    lastrowT5 = wsT5s.Range("E7").End(xlDown).Row
+    lastrowMasters = wsMasters.Range("A200").End(xlUp).Row
+    lastcolMasters = 33
+    colNameMs = Split(Cells(, (lastcolMasters)).Address, "$")(1)
+
+    Columns("H:H").Select
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    Range("H5").Select
+    ActiveCell.FormulaR1C1 = "Start Main"
+    Range("I5").Select
+    ActiveCell.FormulaR1C1 = "Time"
+    Range("J5").Select
+    ActiveCell.FormulaR1C1 = "End Main"
+
+    Columns("H:H").EntireColumn.AutoFit
+    Columns("I:I").EntireColumn.AutoFit
+    Columns("J:J").EntireColumn.AutoFit
+    Columns("K:K").EntireColumn.AutoFit
+
+    Columns("H:H").Select
+    Selection.NumberFormat = "h:mm;@"
+
+    Columns("I:I").Select
+    Selection.NumberFormat = "h:mm;@"
+
+    Columns("J:J").Select
+    Selection.NumberFormat = "h:mm;@"
+    
+     Range("J7").FormulaR1C1 = "=RC[-2]+RC[-1]"
+     Range("J7").AutoFill Destination:=Range("J7:J" & lastrowT5), Type:=xlFillDefault
+    
+     Dim Hs As Integer
+     Dim alldata As Integer
+     alldata = 0
+     Dim qt As Integer
+     Dim vallD As Integer
+     Dim tackTime As Integer
+     Dim numS As Integer
+     numS = 7
+
+     
+      Dim plus As Integer
+      plus = 0
+'      Dim tif As Double
+      Dim colJ As Double
+
+    Dim wsMastersTime As Worksheet
+    'Set wsMastersTime = Sheets("Time")
+    Dim lRowTime As Integer
+    Dim arrTime As Variant
+    Dim i As Integer, j As Integer
+    chk_start = 0
+'    lRowTime = wsMastersTime.Cells(Rows.Count, 1).End(xlUp).Row
+'
+'    arrTime = wsMastersTime.Range("A1:E" & lRowTime).Value
+'    ReDim arrint(LBound(arrTime, 1) To UBound(arrTime, 1), LBound(arrTime, 2) To UBound(arrTime, 2)) As Variant
+'    k = 0
+'    For i = LBound(arrTime, 1) + 1 To UBound(arrTime, 1)  'row
+'        For j = LBound(arrTime, 2) To UBound(arrTime, 2)    'column
+'            arrint(i, j) = arrTime(i, j)    'Save sheets("Data") => arrint
+''            MsgBox arrint(i, j)
+'        Next j
+'    Next i
+    
+    Dim TM_COLOR(), TM_MODEL(), TM_BREAK(), TM_STR(), TM_END() As Variant
+'      For i = LBound(arrint, 1) + 1 To UBound(arrint, 1)  '
+'        ReDim Preserve TM_COLOR(k), TM_MODEL(k), TM_BREAK(k), TM_STR(k), TM_END(k)
+'        TM_COLOR(k) = arrint(i, 1)  ' colum a
+'        TM_MODEL(k) = arrint(i, 2)  ' colum b
+'        TM_BREAK(k) = arrint(i, 3)  ' colum c
+'        TM_STR(k) = arrint(i, 4)  ' colum d
+'        TM_END(k) = arrint(i, 5)  ' colum e
+'      Next i
+      
+'      If TM_MODEL(k) = "T599" Then
+      For o = 7 To lastrowMasters
+       For p = 3 To lastcolMasters
+         colChackNTs = Split(Cells(, (p)).Address, "$")(1)
+          If wsMasters.Range(colChackNTs & 1).DisplayFormat.Interior.Color = 16777215 And wsMasters.Range(colChackNTs & 1).Value <> "" Then
+            If o = 7 Then
+                qt = wsMasters.Range(colChackNTs & "7").Value
+                  
+                     tackTime = (8 * 60) / wsMasters.Range(colChackNTs & "7").Value
+                    
+                     For m = numS To lastrowT5
+                             old_day = wsT5s.Range("A" & numS).Value
+                             old_shift = wsT5s.Range("B" & numS).Value
+                            If chk_start = 0 Then
+                                If wsT5s.Range("B" & numS).Value = "N" Then
+                                    wsT5s.Range("H" & numS).Value = "20:00"
+                                    Set wsMastersTime = Sheets("TimeN")
+                                    lRowTime = wsMastersTime.Cells(Rows.Count, 1).End(xlUp).Row
+
+                                    arrTime = wsMastersTime.Range("A1:E" & lRowTime).Value
+                                    ReDim arrint(LBound(arrTime, 1) To UBound(arrTime, 1), LBound(arrTime, 2) To UBound(arrTime, 2)) As Variant
+                                    k = 0
+                                    For i = LBound(arrTime, 1) + 1 To UBound(arrTime, 1)  'row
+                                        For j = LBound(arrTime, 2) To UBound(arrTime, 2)    'column
+                                            arrint(i, j) = arrTime(i, j)    'Save sheets("Data") => arrint
+                                        Next j
+                                    Next i
+                                Else
+                                    wsT5s.Range("H" & numS).Value = "8:00"
+                                   Set wsMastersTime = Sheets("Time")
+                                   lRowTime = wsMastersTime.Cells(Rows.Count, 1).End(xlUp).Row
+
+                                    arrTime = wsMastersTime.Range("A1:E" & lRowTime).Value
+                                    ReDim arrint(LBound(arrTime, 1) To UBound(arrTime, 1), LBound(arrTime, 2) To UBound(arrTime, 2)) As Variant
+                                    k = 0
+                                    For i = LBound(arrTime, 1) + 1 To UBound(arrTime, 1)  'row
+                                        For j = LBound(arrTime, 2) To UBound(arrTime, 2)    'column
+                                            arrint(i, j) = arrTime(i, j)    'Save sheets("Data") => arrint
+                                        Next j
+                                    Next i
+                                End If
+                            End If
+'                            vallD = wsT5s.Range("G" & numS).Value
+                              For i = LBound(arrint, 1) + 1 To UBound(arrint, 1)  '
+                                ReDim Preserve TM_COLOR(k), TM_MODEL(k), TM_BREAK(k), TM_STR(k), TM_END(k)
+                                TM_COLOR(k) = arrint(i, 1)  ' colum a
+                                TM_MODEL(k) = arrint(i, 2)  ' colum b
+                                TM_BREAK(k) = arrint(i, 3)  ' colum c
+                                TM_STR(k) = arrint(i, 4)  ' colum d
+                                TM_END(k) = arrint(i, 5)  ' colum e
+                                       
+                                        wsT5s.Range("I" & numS).Value = (wsT5s.Range("G" & numS).Value * tackTime) / 1440
+                                       
+                                        colJ = wsT5s.Range("H" & numS).Value + wsT5s.Range("I" & numS).Value
+                                         
+                                        vallD = wsT5s.Range("G" & numS).Value
+                                        
+'                                        If colJ > TM_STR(k) Then
+                                         If wsMastersTime.Range("F" & i).Value = "" Or wsMastersTime.Range("F" & i).Value = Empty Then
+                                             plan_mer = wsT5s.Range("G" & numS).Value
+                                            plan_mer_total = (wsT5s.Range("G" & numS).Value * tackTime) / 1440
+                                            time_mer = plan_mer_total / plan_mer
+'                                            diff_time1 = TM_STR(k) - wsT5s.Range("H" & numS).Value
+
+                                            If TM_STR(k) < wsT5s.Range("H" & numS).Value Then
+                                               diff_time1 = (TM_STR(k) + 1) - wsT5s.Range("H" & numS).Value
+                                            Else
+                                               diff_time1 = TM_STR(k) - wsT5s.Range("H" & numS).Value
+                                            End If
+                                            
+                                            plan_mer_new = diff_time1 / time_mer
+                                           g = Format(colJ, "hh:mm:ss")
+                                           tempyy = Format(TM_STR(k), "hh:mm:ss")
+'                                          Call checkTime.checkSE(alldata, tackTime, numS, wsT5s, vallD, (TM_STR(k)), (TM_END(k)))
+                                            If TM_STR(k) < 4.16666666666667E-02 Then
+                                                tem = TM_STR(k) + 1
+                                            Else
+                                                tem = TM_STR(k)
+                                            End If
+                                            
+                                            If colJ <= tem Then 'J
+                                           
+'                                                    wsT5s.Range("J" & numS).Value = colJ
+                                                    wsT5s.Range("H" & numS + 1).Value = wsT5s.Range("J" & numS).Value
+                                                    
+                                                    numS = numS + 1
+                                            Else
+                                           
+                                                    wsT5s.Rows(numS & ":" & numS).Select
+                                                    Selection.Insert Shift:=xlDown
+                                                    wsT5s.Rows((numS + 1) & ":" & (numS + 1)).Select
+                                                    Selection.Copy
+                                                    wsT5s.Rows(numS & ":" & numS).Select
+                                                    ActiveSheet.Paste '
+                                                     plan_mer_new2 = plan_mer - plan_mer_new
+                                                    
+                                                      pak = Left(plan_mer_new, 2) * 3 / 1440
+                                                      tif = wsT5s.Range("H" & numS).Value + pak
+                                                        
+
+                                                    wsT5s.Range("G" & numS + 1).Value = plan_mer_new2 ' 2
+                                                    wsT5s.Range("G" & numS).Value = Left(plan_mer_new, 2) ' 40
+                                                    wsT5s.Range("H" & numS + 1).Value = TM_END(k)
+                                                    wsT5s.Range("I" & numS).Value = pak
+'                                                    wsT5s.Range("J" & numS).Value = tif
+                                                    colJ = wsT5s.Range("H" & numS + 1).Value + wsT5s.Range("I" & numS + 1).Value
+                                                    numS = numS + 1
+                                            '        numS = numS + 1
+                                                    plus = 0
+                                            '        GoTo ccc
+                                            '        wsT5s.Range("J" & numS + 1).Value = wsT5s.Range("H" & numS + 1).Value + wsT5s.Range("I" & numS + 1).Value
+                                            End If '// J
+                                            Exit For
+                                        Else
+                                            If wsMastersTime.Range("F5").Value <> "" Then
+                                                wsT5s.Range("H" & numS + 1).Value = wsT5s.Range("J" & numS).Value
+                                                numS = numS + 1
+                                            End If
+                                        End If '// Empty
+                                        
+                                        
+                            Next i
+'                            If colJ > TM_STR(k) Then
+                            If colJ > tem Then
+                               wsMastersTime.Range("F" & i).Value = "1"
+                            End If
+                            
+                            If old_day <> wsT5s.Range("A" & numS + 1).Value Or old_shift <> wsT5s.Range("B" & numS + 1).Value Then
+                                  If chk_start = 0 Then
+                                        If wsT5s.Range("B" & numS).Value = "N" Then
+                                            wsT5s.Range("H" & numS).Value = "20:00"
+                                            Set wsMastersTime = Sheets("TimeN")
+                                            lRowTime = wsMastersTime.Cells(Rows.Count, 1).End(xlUp).Row
+        
+                                            arrTime = wsMastersTime.Range("A1:E" & lRowTime).Value
+                                            ReDim arrint(LBound(arrTime, 1) To UBound(arrTime, 1), LBound(arrTime, 2) To UBound(arrTime, 2)) As Variant
+                                            k = 0
+                                            For i = LBound(arrTime, 1) + 1 To UBound(arrTime, 1)  'row
+                                                For j = LBound(arrTime, 2) To UBound(arrTime, 2)    'column
+                                                    arrint(i, j) = arrTime(i, j)    'Save sheets("Data") => arrint
+                                                Next j
+                                            Next i
+                                        Else
+                                            wsT5s.Range("H" & numS).Value = "8:00"
+                                           Set wsMastersTime = Sheets("Time")
+                                           lRowTime = wsMastersTime.Cells(Rows.Count, 1).End(xlUp).Row
+        
+                                            arrTime = wsMastersTime.Range("A1:E" & lRowTime).Value
+                                            ReDim arrint(LBound(arrTime, 1) To UBound(arrTime, 1), LBound(arrTime, 2) To UBound(arrTime, 2)) As Variant
+                                            k = 0
+                                            For i = LBound(arrTime, 1) + 1 To UBound(arrTime, 1)  'row
+                                                For j = LBound(arrTime, 2) To UBound(arrTime, 2)    'column
+                                                    arrint(i, j) = arrTime(i, j)    'Save sheets("Data") => arrint
+                                                Next j
+                                            Next i
+                                        End If
+                                    End If
+                               'alldata = 0
+                                For i = LBound(arrint, 1) + 1 To UBound(arrint, 1)  '
+                                ReDim Preserve TM_COLOR(k), TM_MODEL(k), TM_BREAK(k), TM_STR(k), TM_END(k)
+                                TM_COLOR(k) = arrint(i, 1)  ' colum a
+                                TM_MODEL(k) = arrint(i, 2)  ' colum b
+                                TM_BREAK(k) = arrint(i, 3)  ' colum c
+                                TM_STR(k) = arrint(i, 4)  ' colum d
+                                TM_END(k) = arrint(i, 5)  ' colum e
+                                       
+                                        wsT5s.Range("I" & numS).Value = (wsT5s.Range("G" & numS).Value * tackTime) / 1440
+                                       
+                                         colJ = wsT5s.Range("H" & numS).Value + wsT5s.Range("I" & numS).Value
+                                         
+                                        vallD = wsT5s.Range("G" & numS).Value
+                                        'If colJ > TM_STR(k) Then
+                                         If wsMastersTime.Range("F" & i).Value = "" Or wsMastersTime.Range("F" & i).Value = Empty Then
+                                             plan_mer = wsT5s.Range("G" & numS).Value
+                                            plan_mer_total = (wsT5s.Range("G" & numS).Value * tackTime) / 1440
+                                            time_mer = plan_mer_total / plan_mer
+                                             If TM_STR(k) < wsT5s.Range("H" & numS).Value Then
+                                               diff_time1 = (TM_STR(k) + 1) - wsT5s.Range("H" & numS).Value
+                                            Else
+                                               diff_time1 = TM_STR(k) - wsT5s.Range("H" & numS).Value
+                                            End If
+'                                            diff_time1 = TM_STR(k) - wsT5s.Range("H" & numS).Value
+                                            plan_mer_new = diff_time1 / time_mer
+                                           g = Format(colJ, "hh:mm:ss")
+                                           tempyy = Format(TM_STR(k), "hh:mm:ss")
+'                                          Call checkTime.checkSE(alldata, tackTime, numS, wsT5s, vallD, (TM_STR(k)), (TM_END(k)))
+                                            If TM_STR(k) < 4.16666666666667E-02 Then
+                                                tem = TM_STR(k) + 1
+                                            Else
+                                                tem = TM_STR(k)
+                                            End If
+                                            If colJ <= tem Then 'J
+'                                                    wsT5s.Range("J" & numS).Value = colJ
+                                                    wsT5s.Range("H" & numS + 1).Value = wsT5s.Range("J" & numS).Value
+                                                    
+                                                    numS = numS + 1
+                                            Else
+                                           
+                                                    wsT5s.Rows(numS & ":" & numS).Select
+                                                    Selection.Insert Shift:=xlDown
+                                                    wsT5s.Rows((numS + 1) & ":" & (numS + 1)).Select
+                                                    Selection.Copy
+                                                    wsT5s.Rows(numS & ":" & numS).Select
+                                                    ActiveSheet.Paste '
+                                                     plan_mer_new2 = plan_mer - plan_mer_new
+                                                    
+                                                      pak = Left(plan_mer_new, 2) * 3 / 1440
+'                                                      pak = Round(plan_mer_new, 0) * 3 / 1440
+                                                      tif = wsT5s.Range("H" & numS).Value + pak
+                                                        
+
+                                                    wsT5s.Range("G" & numS + 1).Value = plan_mer_new2 ' 2
+                                                    wsT5s.Range("G" & numS).Value = Left(plan_mer_new, 2) ' 40
+                                                    wsT5s.Range("H" & numS + 1).Value = TM_END(k)
+                                                    wsT5s.Range("I" & numS).Value = pak
+'                                                    wsT5s.Range("J" & numS).Value = tif
+                                                    colJ = wsT5s.Range("H" & numS + 1).Value + wsT5s.Range("I" & numS + 1).Value
+                                                    numS = numS + 1
+                                            '        numS = numS + 1
+                                                    plus = 0
+                                            '        GoTo ccc
+                                            '        wsT5s.Range("J" & numS + 1).Value = wsT5s.Range("H" & numS + 1).Value + wsT5s.Range("I" & numS + 1).Value
+                                            End If '// J
+                                            Exit For
+                                        Else
+                                            If wsMastersTime.Range("F5").Value <> "" Then
+                                                wsT5s.Range("H" & numS + 1).Value = wsT5s.Range("J" & numS).Value
+                                                numS = numS + 1
+                                            End If
+                                        End If '// Empty
+'
+                               Next i
+                               chk_start = 0
+                               wsMastersTime.Range("F1:F9").Value = ""
+                               Exit For
+                            End If
+                           
+                             'alldata = alldata + vallD
+'                             If alldata = qt Then
+'                                 alldata = 0
+'                                 chk_start = 0
+'                                 wsMastersTime.Range("F1:F9").Value = " "
+'                                 Exit For
+'                              End If
+                              k = k + 1
+                              chk_start = 1
+                        Next m
+              End If '7
+         End If 'color
+       Next p
+    Next o 'OO
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
