@@ -1,0 +1,110 @@
+import React from 'react'
+import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Slide from '@material-ui/core/Slide';
+import Grid from '@material-ui/core/Grid';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import AccountBoxIcon from '@material-ui/icons/AccountBox';
+import LockIcon from '@material-ui/icons/Lock';
+import Button from '@material-ui/core/Button';
+import PlayCircleFilledWhiteIcon from '@material-ui/icons/PlayCircleFilledWhite';
+class Login extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            slide: null,
+            open: false,
+        }
+        this.handleClose = this.handleClose.bind(this);
+    }
+    handleClose() {
+        this.props.cancle()
+    }
+    async componentDidMount() {
+        console.log(this.props)
+        await this.setState({
+            slide: React.forwardRef((props, ref) => {
+                return <Slide direction="up" ref={ref} {...props} />
+            })
+        });
+        await this.setState({ open: true, })
+    }
+    render() {
+        return (
+            <>
+                <Dialog
+                    fullWidth
+                    maxWidth="xs"
+                    open={this.state.open}
+                    TransitionComponent={this.state.slide}
+                >
+                    <DialogTitle><center>  <span style={{ fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '40px' }}>เข้าสู่ระบบ</span></center></DialogTitle>
+                    <DialogContent>
+                        <Grid container container style={{ marginTop: 'calc(3%)' }}>
+                            <Grid item xs={12}>
+                                <center>
+                                    <TextField
+                                        id="outlined-password-input"
+                                        label="Username"
+                                        placeholder="Username"
+                                        variant="outlined"
+                                        fullWidth
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <AccountBoxIcon style={{ color: '#9d9e9d' }} />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                </center>
+                            </Grid>
+                        </Grid>
+                        <Grid container style={{ marginTop: 'calc(4%)' }}>
+                            <Grid item xs={12}>
+                                <center>
+                                    <TextField
+                                        id="outlined-password-input"
+                                        label="Password"
+                                        variant="outlined"
+                                        fullWidth
+                                        placeholder="Password"
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <LockIcon style={{ color: '#9d9e9d' }} />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    /> </center>
+                            </Grid>
+                        </Grid>
+                        <Grid container style={{ marginTop: 'calc(7%)' }}>
+                            <Grid item xs={12}>
+                                <center>
+                                    <Button fullWidth style={{ backgroundColor: '#383838',height: '55px' }} variant="contained" >
+                                    <span style={{ fontFamily: 'Arial, Helvetica, sans-serif',color:'white',fontWeight:'bold',fontSize:'16px' }}>เข้าสู่ระบบ</span>
+                                    {/* เข้าสู่ระบบ */}
+                                    <PlayCircleFilledWhiteIcon style={{color:'#02d767',fontSize:'20px',marginLeft:'calc(2%)'}} />
+                                   </Button>
+                                </center>
+                            </Grid>
+                        </Grid>
+
+                        <Grid container style={{ marginTop: 'calc(8%)' }}>
+                            <Grid item xs={12}>
+                                
+                            </Grid>
+                        </Grid>
+
+
+                    </DialogContent>
+                </Dialog>
+            </>
+        )
+    }
+}
+export default Login
+
