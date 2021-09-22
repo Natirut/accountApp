@@ -1,0 +1,172 @@
+import React from 'react'
+import Chart from 'react-apexcharts'
+import Grid from '@material-ui/core/Grid';
+class ApexChart extends React.Component {
+    constructor(props) {
+        super(props);
+    
+        this.state = {
+          series: [{
+            name: 'Befor',
+            type: 'column',
+            data: [882, 1272, 3807, 379, 341, 1892, 7075, 2144,0,19,306,2662]
+          }, {
+            name: 'After',
+            type: 'column',
+            data: [762, 98, 1196, 255, 559, 435, 347, 24,193, 474, 69, 0]
+          }, {
+            name: 'Effect1',
+            type: 'line',
+            data: [1644, 1370, 5004, 634, 900, 2328, 7422, 2168,193, 493, 376, 2662]
+          }, {
+            name: 'Effect2',
+            type: 'line',
+            data: [1644,3014, 8018, 8651, 9551, 11879, 19301, 21470,21663, 22155, 22531, 25192]
+          }],
+          options: {
+            chart: {
+              height: 350,
+              type: 'line',
+              stacked: false
+            },
+            dataLabels: {
+              enabled: true
+            },
+            stroke: {
+              width: [1, 1, 4,4]
+            },
+            title: {
+              text: 'Summary Report',
+              align: 'left',
+              offsetX: 110
+            },
+            xaxis: {
+              categories: ["jan-21","feb-21", "mar-21","apr-21", "may-21", "jun-21","jul-21", "aug-21","sep-21","oct-21","nov-21","dec-21"],
+            },
+            yaxis: [
+              {
+                axisTicks: {
+                  show: true,
+                },
+                axisBorder: {
+                  show: true,
+                  color: '#008FFB'
+                },
+                labels: {
+                  style: {
+                    colors: '#008FFB',
+                  }
+                },
+                title: {
+                  text: "HOUR/YEAR",
+                  style: {
+                    color: '#008FFB',
+                  }
+                },
+                min: 0,
+                max: 28000,
+                tooltip: {
+                  enabled: true
+                }
+              },
+              {
+                seriesName: 'Income',
+                opposite: true,
+                axisTicks: {
+                  show: true,
+                },
+                axisBorder: {
+                  show: true,
+                  color: '#00E396'
+                },
+                labels: {
+                  style: {
+                    colors: '#00E396',
+                  }
+                },
+                title: {
+                  text: "Operating Cashflow (thousand crores)",
+                  style: {
+                    color: '#00E396',
+                  }
+                },
+                min: 0,
+                max: 28000,
+              },
+              {
+                seriesName: 'Revenue',
+                opposite: true,
+                axisTicks: {
+                  show: true,
+                },
+                axisBorder: {
+                  show: true,
+                  color: '#FEB019'
+                },
+                labels: {
+                  style: {
+                    colors: '#FEB019',
+                  },
+                },
+                title: {
+                  text: "Revenue (thousand crores)",
+                  style: {
+                    color: '#FEB019',
+                  }
+                } ,
+                min: 0,
+                max: 28000,
+              },
+              {
+                seriesName: 'Effec2',
+                opposite: true,
+                axisTicks: {
+                  show: true,
+                },
+                axisBorder: {
+                  show: true,
+                  color: '#FE6077'
+                },
+                labels: {
+                  style: {
+                    colors: '#FE6077',
+                  },
+                },
+                title: {
+                  text: "Effec2",
+                  style: {
+                    color: '#FE6077',
+                  }
+                },
+                min: 0,
+                max: 28000,
+              }
+            ],
+            tooltip: {
+              fixed: {
+                enabled: true,
+                position: 'topLeft', // topRight, topLeft, bottomRight, bottomLeft
+                offsetY: 30,
+                offsetX: 60
+              },
+            },
+            legend: {
+              horizontalAlign: 'left',
+              offsetX: 40
+            }
+          },
+        }
+      }
+
+    render() {
+      return (
+        <>
+          <Grid item xs = {12} style={{marginTop:'calc(5%)'}}>
+           <center> <Chart options={this.state.options} series={this.state.series} type="line" width={1100} height={500} /></center>
+        </Grid>
+        </>
+      
+              
+      )}
+}
+export default ApexChart
